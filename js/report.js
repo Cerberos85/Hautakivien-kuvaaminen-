@@ -1,100 +1,117 @@
 /**
- * report.js - Word-dokumentin generointi (docx.js)
+ * report.js - Varma offline-versio Word-generoinnille
  */
 
 async function generateWordReport() {
-    const { Document, Packer, Paragraph, TextRun, ImageRun, AlignmentType } = window.docx;
+    try {
+        if (!window.docx) {
+            alert("Järjestelmä latautuu vielä, yritä hetken kuluttua uudelleen.");
+            return;
+        }
 
-    // 1. Haetaan kaikki kuvat tietokannasta
-    const graves = await getAllGraves();
+        const { Document, Packer, Paragraph, TextRun, ImageRun, AlignmentType } = window.docx;
 
-    if (graves.length === 0) {
-        alert("Ei kuvia raporttia varten. Ota ensin muutama kuva.");
-        return;
-    }
+        // 1. Haetaan kuvat
+        const graves = await getAllGraves();
+        if (graves.length === 0) {
+            alert("Ota ensin vähintään yksi kuva!");
+            return;
+        }
 
-    // 2. Luodaan dokumentin sisältö
-    const children = [];
+        alert("Luodaan raporttia " + graves.length + " kuvasta. Odota hetki...");
 
-    // Lisätään otsikko
-    children.push(new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 400 },
-        children: [
-            new TextRun({
-                text: "HAUTAPAIKKARAPORTTI",
-                bold: true,
-                size: 32,
-            }),
-        ],
-    }));
+        const children = [];
 
-    // 3. Iteroidaan kuvat ja lisätään ne dokumenttiin
-    for (let i = 0; i < graves.length; i++) {
-        const grave = graves[i];
+        // Otsikko
+        children.push(new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 },
+            children: [new TextRun({ text: "HOITAMATTOMUUS-RAPORTTI", bold: true, size: 32 })],
+        }));
 
-        try {
-            // Muunnetaan Base64-data Bufferiksi/Blobiksi docx.js:lle
-            const imageResponse = await fetch(grave.image_data);
-            const imageBlob = await imageResponse.blob();
+        // 2. Käydään kuvat läpi
+        for (let i = 0; i < graves.length; i++) {
+            const grave = graves[i];
 
-            // Lisätään kuva
+            // Muunnetaan Base64 -> ArrayBuffer suoraan JavaScriptillä (Ohittaa PWA Service Workerin)
+            const arrayBuffer = base64ToArrayBuffer(grave.image_data);
+
+            // Lasketaan kuvan todellinen koko
+            const dimensions = await getImageDimensions(grave.image_data);
+            const ratio = dimensions.width / dimensions.height;
+            
+            // Määritetään kuvan koko sivulla (A4 leveys on rajallinen)
+            const targetWidth = 450;
+            const targetHeight = targetWidth / ratio;
+
+            // Lisätään kuva dokumenttiin
             children.push(new Paragraph({
                 alignment: AlignmentType.CENTER,
                 children: [
                     new ImageRun({
-                        data: imageBlob,
+                        data: arrayBuffer,
                         transformation: {
-                            width: 500,  // n. 13-14 cm leveys (sopii hyvin A4:lle)
-                            height: 350, // n. 9-10 cm korkeus
+                            width: targetWidth,
+                            height: targetHeight,
                         },
                     }),
                 ],
             }));
 
-            // Lisätään kuvan tiedot (Aika ja mahdollinen OCR-teksti)
+            // Tekstiedot kuvan alle
             children.push(new Paragraph({
                 alignment: AlignmentType.CENTER,
-                spacing: { after: 600, before: 200 },
+                spacing: { after: 400, before: 200 },
                 children: [
-                    new TextRun({
-                        text: `Kuva ${i + 1}: ${grave.timestamp}`,
-                        italics: true,
-                        size: 20,
-                    }),
-                    new TextRun({
-                        text: grave.extracted_text ? `\nTunnistettu teksti: ${grave.extracted_text}` : "",
-                        bold: true,
-                        size: 20,
-                    }),
+                    new TextRun({ text: `Kuva ${i + 1}: ${grave.timestamp}`, italics: true, size: 20 }),
                 ],
             }));
 
-            // Pakotetaan sivunvaihto joka toisen kuvan jälkeen
-            // Näin saadaan tasan 2 kuvaa per sivu
+            // Sivunvaihto joka toisen kuvan jälkeen
             if ((i + 1) % 2 === 0 && i !== graves.length - 1) {
-                children.push(new Paragraph({
-                    children: [new TextRun({ text: "", break: 1 })],
-                    pageBreakBefore: true,
-                }));
+                children.push(new Paragraph({ text: "", pageBreakBefore: true }));
             }
-
-        } catch (err) {
-            console.error("Kuvan lisääminen epäonnistui:", err);
         }
+
+        // 3. Tallennus
+        const doc = new Document({
+            sections: [{ children: children }]
+        });
+
+        // Pakataan Word-tiedostoksi
+        const blob = await Packer.toBlob(doc);
+        
+        // Ladataan puhelimeen
+        saveAs(blob, `Hautaraportti_${new Date().getTime()}.docx`);
+        
+        alert("Raportti on nyt ladattu puhelimesi Tiedostot/Lataukset -kansioon!");
+
+    } catch (err) {
+        // Jos jokin menee pieleen, puhelin ilmoittaa virheen tekstinä
+        console.error(err);
+        alert("Virhe raportin luonnissa: " + err.message);
     }
+}
 
-    // 4. Luodaan dokumenttiolio
-    const doc = new Document({
-        sections: [{
-            properties: {},
-            children: children,
-        }],
+// APUFUNKTIO 1: Selvittää kuvan koon
+function getImageDimensions(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve({ width: img.width, height: img.height });
+        img.onerror = () => reject(new Error("Kuvan koon laskenta epäonnistui"));
+        img.src = url;
     });
+}
 
-    // 5. Generoidaan tiedosto ja käynnistetään lataus
-    Packer.toBlob(doc).then((blob) => {
-        const filename = `Hautapaikkaraportti_${new Date().toLocaleDateString('fi-FI')}.docx`;
-        saveAs(blob, filename);
-    });
+// APUFUNKTIO 2: Turvallinen Base64 -> ArrayBuffer muunnos
+function base64ToArrayBuffer(base64) {
+    // Poistetaan otsake (esim. "data:image/jpeg;base64,")
+    const base64Data = base64.split(',')[1];
+    const binaryString = window.atob(base64Data);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
 }
