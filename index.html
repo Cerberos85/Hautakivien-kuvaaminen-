@@ -3,46 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hautausmaa-Doc</title>
+    <title>Hoitamattomuus-kuvaus</title>
+    
+    <!-- UUDET: Google Fonts ja Material Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
     <link rel="stylesheet" href="css/style.css">
     
+    <!-- Ulkoiset kirjastot -->
     <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <!-- PWA-asetukset -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2c3e50">
+    <meta name="theme-color" content="#2b4c3b">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('Service Worker rekisteröity', reg))
-        .catch(err => console.log('SW virhe', err));
-    });
-  }
-</script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .catch(err => console.error('SW virhe', err));
+            });
+        }
+    </script>
+
+    <!-- Omat skriptit -->
+    <script src="js/storage.js" defer></script>
+    <script src="js/report.js" defer></script>
+    <script src="js/app.js" defer></script>
 </head>
 <body>
 
     <header>
-        <h1>Hautapaikkadokumentointi</h1>
+        <h1>Hautapaikkojen valokuvaus hoitamattomuuden perusteella</h1>
     </header>
 
     <main id="app">
-        <section class="controls">
+        <!-- Kamera-nappi ylhäällä -->
+        <section class="controls top-controls">
             <label for="camera-input" class="btn btn-primary">
-                Ota kuva / Valitse galleriasta
+                <span class="material-symbols-outlined">add_a_photo</span>
+                Ota uusi kuva
                 <input type="file" id="camera-input" accept="image/*" capture="environment" hidden>
             </label>
-            <button id="generate-report" class="btn btn-secondary">Luo raportti (.docx)</button>
         </section>
 
+        <!-- Galleria -->
         <section id="photo-list" class="photo-grid">
-            </section>
+            <!-- Kuvat ilmestyvät tänne -->
+        </section>
     </main>
 
-    <script src="js/storage.js"></script>
-    <script src="js/report.js"></script>
-    <script src="js/app.js"></script>
+    <!-- Kelluva raporttinappi alhaalla -->
+    <div class="floating-bottom-bar">
+        <button id="generate-report" class="btn btn-secondary">
+            <span class="material-symbols-outlined">description</span>
+            Luo raportti (.docx)
+        </button>
+    </div>
+
 </body>
 </html>

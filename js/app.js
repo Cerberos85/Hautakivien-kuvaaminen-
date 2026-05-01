@@ -65,8 +65,8 @@ async function renderGallery() {
                 <div class="photo-metadata">
                     ${grave.extracted_text || "Ei tekstitunnistusta (tulossa)"}
                 </div>
-                <button class="btn-delete" onclick="handleDelete(${grave.id})" 
-                    style="margin-top:10px; background:none; border:none; color:red; cursor:pointer;">
+                    <button class="btn-delete" onclick="handleDelete(${grave.id})">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                     Poista kuva
                 </button>
             </div>
