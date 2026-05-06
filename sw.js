@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hautausmaa-v1';
+const CACHE_NAME = 'hautausmaa-v2'; 
 const ASSETS = [
   './',
   './index.html',
@@ -6,7 +6,8 @@ const ASSETS = [
   './js/app.js',
   './js/storage.js',
   './js/report.js',
-  'https://unpkg.com/docx@8.5.0/build/index.js',
+  // Vaihda myös tänne uusi luotettavampi linkki:
+  'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js',
   'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js'
 ];
 
