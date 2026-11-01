@@ -11,20 +11,18 @@
 
     <link rel="stylesheet" href="css/style.css">
     
-    <!-- Ulkoiset kirjastot (Käytetään luotettavampaa jsDelivr-linkkiä) -->
-    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
+    <!-- KORJATTU: Käytetään selainyhteensopivaa UMD-versiota (index.umd.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     
     <!-- PWA-asetukset -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2b4c3b">
     
-    <!-- KORJATTU: Uusi mobiili-meta-tagi vanhan tilalle/lisäksi -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- UUSI: Favicon-linkki poistamaan 404-virhe -->
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2891/2891415.png">
 
 <script>
@@ -32,14 +30,11 @@
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
         .then(reg => {
-          // Yrittää hakea uuden Service Workerin taustalla aina kun sivu ladataan
           reg.update();
-          
-          // Jos uusi versio löytyy ja asennetaan, päivitetään sivu automaattisesti
           reg.addEventListener('updatefound', () => {
             const newWorker = reg.installing;
             newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'activated') {
+              if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
                 console.log('Uusi versio asennettu! Päivitetään sivu...');
                 window.location.reload();
               }
@@ -63,7 +58,6 @@
     </header>
 
     <main id="app">
-        <!-- Kamera-nappi ylhäällä -->
         <section class="controls top-controls">
             <label for="camera-input" class="btn btn-primary">
                 <span class="material-symbols-outlined">add_a_photo</span>
@@ -72,13 +66,11 @@
             </label>
         </section>
 
-        <!-- Galleria -->
         <section id="photo-list" class="photo-grid">
             <!-- Kuvat ilmestyvät tänne -->
         </section>
     </main>
 
-    <!-- Kelluva raporttinappi alhaalla -->
     <div class="floating-bottom-bar">
         <button id="generate-report" class="btn btn-secondary">
             <span class="material-symbols-outlined">description</span>
