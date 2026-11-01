@@ -1,6 +1,6 @@
 // KULTAINEN SÄÄNTÖ: Aina kun muutat app.js, index.html tai style.css tiedostoja,
 // muuta tätä versionumeroa (esim. v3 -> v4 -> v5).
-const CACHE_NAME = 'hautausmaa-v3'; 
+const CACHE_NAME = 'hautausmaa-v5'; 
 
 const ASSETS = [
   './',
