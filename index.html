@@ -5,48 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hoitamattomuus-kuvaus</title>
     
-    <!-- Google Fonts ja Material Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-
     <link rel="stylesheet" href="css/style.css">
     
-    <!-- KORJATTU: Käytetään selainyhteensopivaa UMD-versiota (index.umd.js) -->
+    <!-- Word- ja tallennuskirjastot (selainyhteensopiva UMD-versio) -->
     <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     
-    <!-- PWA-asetukset -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2b4c3b">
-    
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2891/2891415.png">
 
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => {
-          reg.update();
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
-                console.log('Uusi versio asennettu! Päivitetään sivu...');
-                window.location.reload();
-              }
-            });
-          });
-        })
-        .catch(err => console.error('SW virhe', err));
-    });
-  }
-</script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .catch(err => console.error('SW virhe:', err));
+        });
+      }
+    </script>
 
-    <!-- Omat skriptit -->
     <script src="js/storage.js" defer></script>
     <script src="js/report.js" defer></script>
     <script src="js/app.js" defer></script>
@@ -62,13 +43,11 @@
             <label for="camera-input" class="btn btn-primary">
                 <span class="material-symbols-outlined">add_a_photo</span>
                 Ota uusi kuva
-                <input type="file" id="camera-input" accept="image/*" capture="environment" hidden>
             </label>
+            <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
         </section>
 
-        <section id="photo-list" class="photo-grid">
-            <!-- Kuvat ilmestyvät tänne -->
-        </section>
+        <section id="photo-list" class="photo-grid"></section>
     </main>
 
     <div class="floating-bottom-bar">
