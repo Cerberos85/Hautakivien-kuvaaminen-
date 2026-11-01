@@ -1,29 +1,25 @@
-const CACHE_NAME = 'hautausmaa-v7'; 
+const CACHE_NAME = 'hautausmaa-v10'; 
 
-const ASSETS = [
+// Pakotetaan asennuksessa vain paikalliset tiedostot, jotta asennus menee 100% varmasti läpi
+const LOCAL_ASSETS = [
   './',
   './index.html',
+  './manifest.json',
   './css/style.css',
-  './js/app.js',
   './js/storage.js',
   './js/report.js',
-  './manifest.json',
-  'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js'
+  './js/app.js'
 ];
 
-// 1. ASENNUS JA PAKOTETTU KÄYTTÖÖNOTTO
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-  
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
+      return cache.addAll(LOCAL_ASSETS);
     })
   );
 });
 
-// 2. AKTIVOINTI JA VANHOJEN VÄLIMUISTIEN TUHOAMINEN
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     Promise.all([
@@ -37,11 +33,24 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. TIEDOSTOJEN TARJOILU (Offline-tuki)
+// Tallennetaan myös ulkoiset kirjastot lennosta välimuistiin ensimmäisellä latauksella
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return networkResponse;
+      }).catch(() => cachedResponse);
     })
   );
 });
