@@ -27,14 +27,29 @@
     <!-- UUSI: Favicon-linkki poistamaan 404-virhe -->
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2891/2891415.png">
 
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .catch(err => console.error('SW virhe', err));
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => {
+          // Yrittää hakea uuden Service Workerin taustalla aina kun sivu ladataan
+          reg.update();
+          
+          // Jos uusi versio löytyy ja asennetaan, päivitetään sivu automaattisesti
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'activated') {
+                console.log('Uusi versio asennettu! Päivitetään sivu...');
+                window.location.reload();
+              }
             });
-        }
-    </script>
+          });
+        })
+        .catch(err => console.error('SW virhe', err));
+    });
+  }
+</script>
 
     <!-- Omat skriptit -->
     <script src="js/storage.js" defer></script>
