@@ -1,24 +1,25 @@
 {
+  "id": "./",
   "short_name": "Hoito-kuvaus",
   "name": "Hautapaikkojen valokuvaus hoitamattomuuden perusteella",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2891/2891415.png",
+      "src": "https://cdn-icons-png.flaticon.com/128/2891/2891415.png",
       "type": "image/png",
-      "sizes": "192x192",
+      "sizes": "128x128",
       "purpose": "any"
     },
     {
       "src": "https://cdn-icons-png.flaticon.com/512/2891/2891415.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ],
-  "start_url": "./",
+  "start_url": "./index.html",
   "background_color": "#f4f7f6",
   "display": "standalone",
   "scope": "./",
   "theme_color": "#2b4c3b",
-  "description": "Alémsovellus hoitamattomien hautapaikkojen kuvaamiseen ja raportointiin."
+  "description": "Sovellus hoitamattomien hautapaikkojen kuvaamiseen ja raportointiin."
 }
