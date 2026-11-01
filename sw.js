@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hautausmaa-v10'; 
+const CACHE_NAME = 'hautausmaa-v11'; 
 
 // Pakotetaan asennuksessa vain paikalliset tiedostot, jotta asennus menee 100% varmasti läpi
 const LOCAL_ASSETS = [
