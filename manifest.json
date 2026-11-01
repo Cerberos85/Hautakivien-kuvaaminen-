@@ -1,13 +1,12 @@
 {
-  "id": "./",
   "short_name": "Hoito-kuvaus",
   "name": "Hautapaikkojen valokuvaus hoitamattomuuden perusteella",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/128/2891/2891415.png",
-      "type": "image/png",
-      "sizes": "128x128",
-      "purpose": "any"
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%232b4c3b'/%3E%3Cpath d='M160 176h48l32-32h32l32 32h48c17.7 0 32 14.3 32 32v160c0 17.7-14.3 32-32 32H160c-17.7 0-32-14.3-32-32V208c0-17.7 14.3-32 32-32zm96 168c39.8 0 72-32.2 72-72s-32.2-72-72-72-72 32.2-72 72 32.2 72 72 72z' fill='%23ffffff'/%3E%3C/svg%3E",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
     },
     {
       "src": "https://cdn-icons-png.flaticon.com/512/2891/2891415.png",
