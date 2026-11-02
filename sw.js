@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hautausmaa-v11'; 
+const CACHE_NAME = 'hautausmaa-v12'; 
 
 const LOCAL_ASSETS = [
   './',
@@ -31,7 +31,6 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // TÄRKEÄ: Ohitetaan kameran data: ja blob: osoitteet, jotta SW ei blokkaa kuvia
   if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {
     return;
   }
