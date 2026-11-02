@@ -1,117 +1,95 @@
 /**
- * report.js - Varma offline-versio Word-generoinnille
+ * report.js - 100% omavarainen raporttigenerointi (Ei ulkoisia kirjastoja)
+ * Toimii offline-tilassa ja aukeaa selaimessa, Wordissa ja LibreOfficessa.
  */
 
 async function generateWordReport() {
     try {
-        if (!window.docx) {
-            alert("Järjestelmä latautuu vielä, yritä hetken kuluttua uudelleen.");
-            return;
+        // Varmistetaan että tietokanta on auki
+        if (typeof db === 'undefined' || !db) {
+            await initDB();
         }
 
-        const { Document, Packer, Paragraph, TextRun, ImageRun, AlignmentType } = window.docx;
-
-        // 1. Haetaan kuvat
         const graves = await getAllGraves();
         if (graves.length === 0) {
             alert("Ota ensin vähintään yksi kuva!");
             return;
         }
 
-        alert("Luodaan raporttia " + graves.length + " kuvasta. Odota hetki...");
+        const reportDate = new Date().toLocaleDateString('fi-FI');
 
-        const children = [];
-
-        // Otsikko
-        children.push(new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 400 },
-            children: [new TextRun({ text: "HOITAMATTOMUUS-RAPORTTI", bold: true, size: 32 })],
-        }));
-
-        // 2. Käydään kuvat läpi
-        for (let i = 0; i < graves.length; i++) {
-            const grave = graves[i];
-
-            // Muunnetaan Base64 -> ArrayBuffer suoraan JavaScriptillä (Ohittaa PWA Service Workerin)
-            const arrayBuffer = base64ToArrayBuffer(grave.image_data);
-
-            // Lasketaan kuvan todellinen koko
-            const dimensions = await getImageDimensions(grave.image_data);
-            const ratio = dimensions.width / dimensions.height;
+        // Rakennetaan kuvalohkot (2 kuvaa per sivu, kuten aiemmassa Word-mallissa)
+        let itemsHtml = '';
+        graves.forEach((grave, index) => {
+            const isPageBreak = (index + 1) % 2 === 0 && index !== graves.length - 1;
             
-            // Määritetään kuvan koko sivulla (A4 leveys on rajallinen)
-            const targetWidth = 450;
-            const targetHeight = targetWidth / ratio;
-
-            // Lisätään kuva dokumenttiin
-            children.push(new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                    new ImageRun({
-                        data: arrayBuffer,
-                        transformation: {
-                            width: targetWidth,
-                            height: targetHeight,
-                        },
-                    }),
-                ],
-            }));
-
-            // Tekstiedot kuvan alle
-            children.push(new Paragraph({
-                alignment: AlignmentType.CENTER,
-                spacing: { after: 400, before: 200 },
-                children: [
-                    new TextRun({ text: `Kuva ${i + 1}: ${grave.timestamp}`, italics: true, size: 20 }),
-                ],
-            }));
-
-            // Sivunvaihto joka toisen kuvan jälkeen
-            if ((i + 1) % 2 === 0 && i !== graves.length - 1) {
-                children.push(new Paragraph({ text: "", pageBreakBefore: true }));
-            }
-        }
-
-        // 3. Tallennus
-        const doc = new Document({
-            sections: [{ children: children }]
+            itemsHtml += `
+                <div class="grave-item">
+                    <img src="${grave.image_data}" alt="Kuva ${index + 1}">
+                    <p class="caption"><strong>Kuva ${index + 1}:</strong> ${grave.timestamp}</p>${grave.grave_id ? `<p class="meta">Hautatunnus: ${grave.grave_id}</p>` : ''}
+                    ${grave.notes ? `<p class="meta">Huomiot: ${grave.notes}</p>` : ''}
+                </div>
+                ${isPageBreak ? '<div class="page-break"></div>' : ''}
+            `;
         });
 
-        // Pakataan Word-tiedostoksi
-        const blob = await Packer.toBlob(doc);
-        
-        // Ladataan puhelimeen
-        saveAs(blob, `Hautaraportti_${new Date().getTime()}.docx`);
-        
-        alert("Raportti on nyt ladattu puhelimesi Tiedostot/Lataukset -kansioon!");
-
-    } catch (err) {
-        // Jos jokin menee pieleen, puhelin ilmoittaa virheen tekstinä
-        console.error(err);
-        alert("Virhe raportin luonnissa: " + err.message);
-    }
-}
-
-// APUFUNKTIO 1: Selvittää kuvan koon
-function getImageDimensions(url) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve({ width: img.width, height: img.height });
-        img.onerror = () => reject(new Error("Kuvan koon laskenta epäonnistui"));
-        img.src = url;
-    });
-}
-
-// APUFUNKTIO 2: Turvallinen Base64 -> ArrayBuffer muunnos
-function base64ToArrayBuffer(base64) {
-    // Poistetaan otsake (esim. "data:image/jpeg;base64,")
-    const base64Data = base64.split(',')[1];
-    const binaryString = window.atob(base64Data);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes.buffer;
-}
+        // Koko HTML-dokumentti sisäisillä A4- ja Word-tyyleillä
+        const htmlContent = `<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hoitamattomuus-raportti ${reportDate}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #222;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 15mm;
+            background: #fff;
+        }
+        h1 {
+            text-align: center;
+            color: #2b4c3b;
+            font-size: 20pt;
+            margin-bottom: 5mm;
+            border-bottom: 2px solid #2b4c3b;
+            padding-bottom: 4mm;
+        }
+        .report-info {
+            text-align: center;
+            color: #555;
+            margin-bottom: 10mm;
+            font-size: 11pt;
+        }
+        .grave-item {
+            text-align: center;
+            margin-bottom: 12mm;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .grave-item img {
+            max-width: 150mm;
+            max-height: 95mm;
+            width: auto;
+            height: auto;
+            border: 1px solid #ccc;
+        }
+        .caption {
+            margin-top: 3mm;
+            font-style: italic;
+            font-size: 11pt;
+        }
+        .meta {
+            margin-top: 1mm;
+            font-size: 10pt;
+        }
+        .page-break {
+            page-break-after: always;
+            break-after: page;
+            height: 0;
+            margin: 0;
+        }
+        .no-print-bar {
+            background: #f4f7f6;
+            border: 1px solid #2b4c3b;
