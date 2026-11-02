@@ -5,29 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hoitamattomuus-kuvaus</title>
     
+    <!-- Google Fonts ja Material Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
     <link rel="stylesheet" href="css/style.css">
     
-    <!-- Word- ja tallennuskirjastot (selainyhteensopiva UMD-versio) -->
+    <!-- Ulkoiset kirjastot (Selainyhteensopiva UMD-versio Word-generointiin) -->
     <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     
+    <!-- PWA-asetukset -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2b4c3b">
+    
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2891/2891415.png">
 
+    <!-- Service Workerin rekisteröinti (Ilman pakotettua reloadia kesken kuvauksen) -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js')
+            .then(reg => {
+              reg.update();
+            })
             .catch(err => console.error('SW virhe:', err));
         });
       }
     </script>
 
+    <!-- Omat skriptit -->
     <script src="js/storage.js" defer></script>
     <script src="js/report.js" defer></script>
     <script src="js/app.js" defer></script>
@@ -39,17 +51,22 @@
     </header>
 
     <main id="app">
+        <!-- Kamera-nappi ylhäällä -->
         <section class="controls top-controls">
             <label for="camera-input" class="btn btn-primary">
                 <span class="material-symbols-outlined">add_a_photo</span>
                 Ota uusi kuva
+                <input type="file" id="camera-input" accept="image/*" capture="environment" hidden>
             </label>
-            <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
         </section>
 
-        <section id="photo-list" class="photo-grid"></section>
+        <!-- Galleria -->
+        <section id="photo-list" class="photo-grid">
+            <!-- Kuvat ilmestyvät tänne -->
+        </section>
     </main>
 
+    <!-- Kelluva raporttinappi alhaalla -->
     <div class="floating-bottom-bar">
         <button id="generate-report" class="btn btn-secondary">
             <span class="material-symbols-outlined">description</span>
